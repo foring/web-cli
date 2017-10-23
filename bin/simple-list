@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+var list = require('../config/template');
+var program = require('commander')
+var chalk = require('chalk')
+
+program
+    .usage('<commond> [options]')
+
+var nameArr = [];
+var _alias = list.alias, alias = {}
+for (var a in _alias) {
+    alias[_alias[a]] = a;
+}
+for (var a in list) {
+    if (a !== 'alias') {
+        var name = alias[a] ? a + '    |    ' + alias[a] : a;
+        nameArr.push(name)
+    }
+}
+console.log();
+console.log('template name : ')
+console.log('       ' + chalk.yellow(nameArr.join('\n       ')))

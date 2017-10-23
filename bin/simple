@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+require('commander')
+    .version(require('../package').version)
+    .usage('<command> [options]')
+    .command('init', '初始化项目')
+    .command('list', '列出可构建项目列表')
+    .command('build', '构建项目(暂不可用)')
+    .parse(process.argv)

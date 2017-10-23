@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+var chalk = require('chalk')
+var path = require('path')
+var inquirer = require('inquirer')
+var exists = require('fs').existsSync
+var home = require('user-home')
+var ora = require('ora')
+var rm = require('rimraf').sync
+var simpleGit = require('simple-git')(__dirname);
+var templateList = require('../config/template');
+var gulp = require('gulp')
+
+
+program
+    .usage('<模板名称> [生成目录]')
+    .option('--offline', '使用本地缓存模板，默认线上模板')
+
+program.on('--help', function () {
+    console.log('  例如:')
+    console.log()
+    console.log(chalk.yellow('    # create a jquery project'))
+    console.log('    $ simple init jquery')
+    console.log()
+    console.log(chalk.white('    ========================='))
+    console.log()
+    console.log(chalk.yellow('    # create a vue project'))
+    console.log('    $ simple init vue')
+    console.log()
+})
+
+program.parse(process.argv);
+if (program.args.length < 1) {
+    program.help()
+}
+console.log()
+process.on('exit', function () {
+    console.log()
+})
+
+var template = program.args[0]
+var tempPath = path.join(home, '.simple-templates', template.replace(/\//g, '-'))
+var rawName = program.args[1]
+var inPlace = !rawName || rawName === '.'
+var templateConfig = templateList[template] || templateList[templateList.alias[template]]
+
+var name = inPlace ? path.relative('../', process.cwd()) : rawName;
+
+var toDir = 'src';
+//生成目录
+var to = path.resolve(rawName || './');
+var toSrcDir = to + '/' + toDir;
+
+//
+if (program.offline) {
+    if (exists(tempPath)) {
+        console.log(' > 使用本地缓存模板构建项目');
+    } else {
+        console.log(' > 本地缓存模板不存在');
+        process.exit();
+    }
+}
+if (!templateConfig) {
+    console.log('   Template ' + chalk.yellow(template) + ' 不可用.');
+    console.log();
+    console.log('   $ simple list 查看可用模板');
+    process.exit();
+}
+
+if (exists(toSrcDir)) {
+    inquirer.prompt([{
+        type: 'confirm',
+        message: chalk.yellow(toSrcDir) + '  directory exists. Continue?',
+        name: 'ok'
+    }]).then(function (answers) {
+        if (answers.ok) {
+            run()
+        }
+    })
+} else {
+    run()
+}
+function run() {
+    if (program.offline) {
+        generate(template)
+    } else {
+        downloadAndGenerate(template)
+    }
+
+}
+
+function generate() {
+    console.log()
+    console.log('   正在生成模板文件...\n');
+    gulp.src([tempPath + '/template/**/*',tempPath + '/template/.gitignore']).pipe(gulp.dest(to));
+    console.log('   生成完毕\n');
+    console.log('   请执行命令，完成项目初始化： npm install --dev');
+}
+function downloadAndGenerate(template) {
+    var spinner = ora('downloading template : ' + template + '\n');
+    spinner.start()
+    // Remove if local template exists
+
+    if (exists(tempPath)) {
+        rm(tempPath);
+    }
+    console.log('\n')
+    simpleGit.clone(templateConfig.git, tempPath, function (err, data) {
+        spinner.stop()
+        if (err) {
+            console.log(err)
+        } else {
+            generate()
+        }
+    })
+}
