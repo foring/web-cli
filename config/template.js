@@ -3,12 +3,10 @@ module.exports = {
         "jq": "jquery"
     },
     "jquery": {
-        "git": "http://git.mucang.cn/html5page-webfront/jiakaobaodian-template-jquery.git"
+        "git": "xxx"
     },
     "vue": {
-        "git": "http://git.mucang.cn/html5page-webfront/jiakaobaodian-template-vue.git"
+        "git": "xxx"
     },
-    "demo": {
-        "git": "http://git.mucang.cn:html5page-webfront/jiakaobaodian-vue-gulp-webpack.git"
-    }
+   
 }
